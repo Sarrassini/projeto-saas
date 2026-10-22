@@ -51,3 +51,7 @@ Resultado: Padaria Pao Quente (Basico), TechNova Ltda (Profissional) e Clinica V
 
 ## Autores
 - Davi Sarrassini
+- Kauan Pereira Taborda
+- Enzo Panassol Zapparolli
+- Luis Felipe de Souza Oliveira
+- João Vitor Fogaça Rocha
