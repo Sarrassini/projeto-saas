@@ -1,0 +1,21 @@
+USE saas_assinaturas;
+
+CREATE TABLE IF NOT EXISTS login (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    `user` VARCHAR(50) UNIQUE NOT NULL,
+    `password` CHAR(32) NOT NULL,
+    token CHAR(64) UNIQUE NOT NULL
+);
+
+DROP FUNCTION IF EXISTS gera_token;
+DELIMITER $$
+CREATE FUNCTION gera_token() RETURNS CHAR(64)
+NOT DETERMINISTIC
+NO SQL
+BEGIN
+    RETURN SHA2(CONCAT(UUID(), RAND(), CURRENT_TIMESTAMP(6)), 256);
+END$$
+DELIMITER ;
+
+INSERT IGNORE INTO login (`user`, `password`, token)
+VALUES ('admin', MD5('123456'), gera_token());
