@@ -34,11 +34,29 @@ CREATE TABLE chamados (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
+-- Tabela original mantida para compatibilidade com a primeira versao.
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     login VARCHAR(50) UNIQUE NOT NULL,
     senha CHAR(64) NOT NULL
 );
+
+-- Tabela de autenticacao com token conforme o modelo do professor.
+CREATE TABLE login (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    `user` VARCHAR(50) UNIQUE NOT NULL,
+    `password` CHAR(32) NOT NULL,
+    token CHAR(64) UNIQUE NOT NULL
+);
+
+DELIMITER $$
+CREATE FUNCTION gera_token() RETURNS CHAR(64)
+NOT DETERMINISTIC
+NO SQL
+BEGIN
+    RETURN SHA2(CONCAT(UUID(), RAND(), CURRENT_TIMESTAMP(6)), 256);
+END$$
+DELIMITER ;
 
 INSERT INTO planos (nome, preco_mensal, limite_usuarios) VALUES
 ('Basico', 49.90, 5),
@@ -60,3 +78,7 @@ INSERT INTO chamados (cliente_id, assunto, data_abertura, resolvido) VALUES
 (3, 'Duvida sobre cobranca', '2026-10-08', FALSE);
 
 INSERT INTO usuarios (login, senha) VALUES ('admin', SHA2('123456', 256));
+
+-- Credencial didatica para testes; MD5 e usado para seguir o exemplo do professor.
+INSERT INTO login (`user`, `password`, token)
+VALUES ('admin', MD5('123456'), gera_token());
