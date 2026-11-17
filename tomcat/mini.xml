@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context path="/mini"
+         docBase="/opt/tomcat10/mini_saas"
+         cachingAllowed="false"
+         antiResourceLocking="false"
+         privileged="true" />
