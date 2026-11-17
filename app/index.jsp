@@ -16,15 +16,15 @@
         <table align="center">
             <tr>
                 <td>USER</td>
-                <td align="right"><input type="text" size="20" name="user"/></td>
+                <td align="right"><input type="text" size="20" name="user" required /></td>
             </tr>
             <tr>
                 <td>PASSWORD</td>
-                <td align="right"><input type="password" size="20" name="pass"/></td>
+                <td align="right"><input type="password" size="20" name="password" required /></td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <input type="submit" value="ENTRAR NO SISTEMA COM SESS&Atilde;O"/>
+                    <input type="submit" value="ENTRAR NO SISTEMA COM SESS&Atilde;O" />
                 </td>
             </tr>
         </table>
