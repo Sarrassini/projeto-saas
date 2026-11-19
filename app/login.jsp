@@ -53,7 +53,7 @@ if (novoToken == null) {
     response.sendRedirect("index.jsp?erro=1"); return;
 }
 session.invalidate();
-javax.servlet.http.HttpSession novaSessao = request.getSession(true);
+jakarta.servlet.http.HttpSession novaSessao = request.getSession(true);
 novaSessao.setAttribute("usuario", loginInformado.trim());
 novaSessao.setAttribute("token", novoToken);
 novaSessao.setAttribute("csrf", java.util.UUID.randomUUID().toString());
