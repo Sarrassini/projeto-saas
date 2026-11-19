@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/mini"
-         docBase="/opt/tomcat10/mini_saas"
-         cachingAllowed="false"
-         antiResourceLocking="false"
-         privileged="true" />
+<!-- O nome mini.xml define o caminho /mini no Tomcat. -->
+<Context docBase="/opt/tomcat10/mini_saas" antiResourceLocking="false">
+    <Resources cachingAllowed="false" />
+</Context>
