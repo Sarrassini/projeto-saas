@@ -1,0 +1,34 @@
+<%
+response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+response.setHeader("Pragma", "no-cache");
+response.setDateHeader("Expires", 0);
+
+String usuarioSessao = (String) session.getAttribute("usuario");
+String tokenSessao = (String) session.getAttribute("token");
+boolean acessoPermitido = usuarioSessao != null && tokenSessao != null;
+
+if (acessoPermitido) {
+    try (Connection conexaoAuth = abrirBanco();
+         PreparedStatement consultaAuth = conexaoAuth.prepareStatement(
+             "SELECT id FROM login WHERE `user` = ? AND token = ?")) {
+        consultaAuth.setString(1, usuarioSessao);
+        consultaAuth.setString(2, tokenSessao);
+        try (ResultSet resultadoAuth = consultaAuth.executeQuery()) {
+            acessoPermitido = resultadoAuth.next();
+        }
+    } catch (Exception exAuth) {
+        application.log("Erro ao validar a sessao.", exAuth);
+        acessoPermitido = false;
+    }
+}
+if (!acessoPermitido) {
+    session.invalidate();
+    response.sendRedirect("index.jsp");
+    return;
+}
+String csrfSessao = (String) session.getAttribute("csrf");
+if (csrfSessao == null) {
+    csrfSessao = java.util.UUID.randomUUID().toString();
+    session.setAttribute("csrf", csrfSessao);
+}
+%>
