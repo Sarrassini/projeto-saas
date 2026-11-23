@@ -1,0 +1,35 @@
+<%@ page import="java.sql.*,java.util.*,java.text.*" %>
+<%!
+    // Utilitarios compartilhados. Arquivos em WEB-INF nao ficam acessiveis diretamente por URL.
+    Connection abrirBanco() throws Exception {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        String url = System.getenv("SAAS_DB_URL");
+        String usuario = System.getenv("SAAS_DB_USER");
+        String senha = System.getenv("SAAS_DB_PASSWORD");
+
+        if (url == null || url.isEmpty()) {
+            url = "jdbc:mysql://localhost:3306/saas_assinaturas";
+        }
+        if (usuario == null || usuario.isEmpty()) {
+            usuario = "saas_user";
+        }
+        if (senha == null || senha.isEmpty()) {
+            throw new SQLException("Configure SAAS_DB_PASSWORD no servico Tomcat.");
+        }
+        return DriverManager.getConnection(url, usuario, senha);
+    }
+
+    String escapar(String valor) {
+        if (valor == null) return "";
+        return valor.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\"", "&quot;")
+                    .replace("'", "&#39;");
+    }
+
+    String moeda(java.math.BigDecimal valor) {
+        if (valor == null) return "—";
+        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(valor);
+    }
+%>
