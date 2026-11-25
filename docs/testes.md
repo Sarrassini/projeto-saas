@@ -27,19 +27,21 @@ Os resultados abaixo separam o que foi efetivamente observado na VM do que ainda
 
 ## Novos testes — atualização de contratos, clientes e chamados
 
-Executar estes cenários depois de atualizar os arquivos na VM e aplicar as migrações 003 e 004.
+Executar estes cenários depois de atualizar os arquivos na VM e aplicar as migrações 003, 004 e 005.
 
 | ID | Cenário | Resultado esperado | Status |
 |---|---|---|---|
 | T10 | Selecionar uma empresa que já possui contrato ativo e escolher outro plano | O registro ativo existente é atualizado; nenhum novo registro é criado. | **Pendente** |
 | T11 | Consultar o histórico após atualizar um contrato que tinha duplicidades ativas antigas | O contrato mais recente permanece ativo e os anteriores passam a cancelados, sem apagar o histórico. | **Pendente** |
 | T12 | Selecionar uma empresa sem contrato ativo e salvar um plano | Um novo contrato ativo é criado. | **Pendente** |
-| T13 | Conferir a lista de clientes após aplicar a migração 003 | As três novas empresas de demonstração aparecem na listagem. | **Pendente** |
+| T13 | Conferir a lista de clientes após aplicar a migração 003 | As três novas empresas de demonstração aparecem na listagem. | **Aprovado na VM** |
 | T14 | Executar novamente a migração 003 | Os clientes não são duplicados, pois os e-mails são únicos e o script usa `INSERT IGNORE`. | **Pendente** |
-| T15 | Cadastrar uma nova empresa pela página Clientes | O cliente é gravado no MySQL e aparece na listagem. | **Pendente** |
-| T16 | Tentar cadastrar outro cliente com e-mail já utilizado | O sistema informa que o e-mail já está cadastrado e não cria duplicidade. | **Pendente** |
-| T17 | Consultar Chamados após aplicar a migração 004 | O chamado de demonstração da Aurora Tecnologia Ltda aparece com situação Resolvido. | **Pendente** |
+| T15 | Cadastrar uma nova empresa pela página Clientes | O cliente é gravado no MySQL e aparece na listagem. | **Aprovado na VM** |
+| T16 | Tentar cadastrar outro cliente com e-mail já utilizado | O sistema informa que o e-mail já está cadastrado e não cria duplicidade. | **Aprovado na VM** |
+| T17 | Consultar Chamados após aplicar a migração 004 | O chamado de demonstração da Aurora Tecnologia Ltda aparece com situação Resolvido. | **Aprovado no MySQL** |
 | T18 | Executar novamente a migração 004 | O chamado de demonstração não é inserido novamente. | **Pendente** |
+| T19 | Marcar um chamado pendente como resolvido pela página Chamados | O sistema atualiza o status, exibe mensagem de sucesso e mostra o chamado como Resolvido. | **Pendente** |
+| T20 | Tentar concluir novamente um chamado já resolvido | Não deve haver ação disponível na listagem; uma requisição repetida não altera o registro. | **Pendente** |
 
 ### Como conferir que um contrato foi atualizado
 
@@ -74,13 +76,13 @@ ORDER BY empresa;
 | P01 | Tentar login com senha incorreta | Permanecer fora da área autenticada e exibir mensagem de erro. | **Pendente** |
 | P02 | Acessar uma página interna sem sessão | Redirecionar para a tela de login. | **Pendente** |
 | P03 | Usar o botão Voltar do navegador após logout | Não permitir reutilizar uma página protegida sem autenticação válida. | **Pendente** |
-| P04 | Enviar GET diretamente para `salvar_assinatura.jsp` ou `salvar_chamado.jsp` | Responder com HTTP 405. | **Pendente** |
+| P04 | Enviar GET diretamente para `salvar_assinatura.jsp`, `salvar_chamado.jsp` ou `resolver_chamado.jsp` | Responder com HTTP 405. | **Pendente** |
 | P05 | Enviar formulário com token CSRF inválido | Responder com HTTP 403 e não gravar dados. | **Pendente** |
 | P06 | Tentar acessar diretamente arquivos dentro de `WEB-INF` | Não disponibilizar os arquivos internos ao navegador. | **Pendente** |
 
-## Funcionalidade fora do escopo implementado
+## Funcionalidades ainda fora do escopo
 
-A tela de chamados permite consultar e abrir solicitações e agora terá um chamado de demonstração já marcado como resolvido. **Ainda não existe uma ação/tela para alterar um chamado pendente para resolvido.** Por isso, o teste T17 verifica apenas a exibição do exemplo resolvido, não uma operação de resolução feita pela interface.
+A aplicação permite concluir chamados pendentes, mas ainda não oferece uma ação para reabrir um chamado já resolvido. Também não há cobrança real nem integração com meios de pagamento.
 
 ## Consultas SQL para conferência
 
@@ -115,4 +117,6 @@ FROM login;
 - Os cadastros de teste anteriores foram feitos no banco da VM e alteraram os dados existentes.
 - Não reaplique `schema.sql` em um banco que já contém dados: ele é destinado à instalação inicial.
 - A migração 003 adiciona os três clientes fictícios e concede permissão de atualização na tabela de assinaturas ao usuário JDBC.
-- Os resultados marcados como aprovados correspondem à versão anterior e foram observados durante a validação manual. Os novos cenários permanecem pendentes até serem executados na VM.
+- A migração 004 libera o cadastro de clientes e adiciona um chamado resolvido de demonstração.
+- A migração 005 libera a atualização do status dos chamados pelo usuário JDBC.
+- Os cenários T10–T12 e T18–T20 permanecem pendentes até serem executados na VM.

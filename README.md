@@ -16,13 +16,12 @@ A aplicação ajuda uma empresa fictícia provedora de software a acompanhar seu
 - Consulta de assinaturas, planos, valores, datas e status.
 - Cadastro de contratos: se a empresa já tiver uma assinatura ativa, o registro existente é atualizado em vez de criar outro.
 - Se houver contratos ativos duplicados de versões anteriores, o mais recente é mantido e os demais são marcados como cancelados, preservando o histórico.
-- Consulta e abertura de chamados vinculados às empresas.
-- Chamado resolvido de demonstração para apresentar os estados pendente e resolvido na listagem.
+- Consulta, abertura e conclusão de chamados vinculados às empresas. Chamados pendentes podem ser marcados como resolvidos pela interface.
 - Consultas SQL com `PreparedStatement`, transações e proteção CSRF nos formulários que alteram dados.
 - Interface CSS responsiva e própria.
-- Três clientes fictícios adicionais para demonstração.
+- Três clientes fictícios adicionais e um chamado resolvido de demonstração.
 
-**Limitações funcionais atuais:** a base inclui um chamado de demonstração já resolvido, mas ainda não há tela/ação para alterar o status de um chamado pendente para resolvido; o módulo permite consultar e abrir chamados. Também não há cobrança real nem integração com meios de pagamento.
+**Limitações funcionais atuais:** ainda não há recurso para reabrir um chamado que já foi marcado como resolvido. Também não há cobrança real nem integração com meios de pagamento.
 
 ## Tecnologias
 
@@ -62,9 +61,10 @@ app/
   assinaturas.jsp            consulta de contratos
   nova_assinatura.jsp        formulário de novo contrato
   salvar_assinatura.jsp      criação ou atualização de contrato
-  chamados.jsp               consulta de chamados
+  chamados.jsp               consulta e conclusão de chamados
   novo_chamado.jsp           formulário de novo chamado
   salvar_chamado.jsp         gravação de chamado
+  resolver_chamado.jsp       conclusão de chamado pendente
   logout.jsp                 revogação do token e encerramento da sessão
   estilo.css                 estilos da interface
   WEB-INF/
@@ -77,6 +77,7 @@ migrations/
   002_painel_gestao.sql        ajustes de autenticação e permissões
   003_contratos_clientes.sql   atualização de contratos e clientes de demonstração
   004_chamado_resolvido.sql    permissão de cadastro e chamado resolvido de demonstração
+  005_concluir_chamados.sql    permissão para concluir chamados pela aplicação
 tomcat/
   mini.xml                    publicação da aplicação no contexto /mini
 docs/
@@ -133,11 +134,12 @@ Depois, execute as migrações na ordem:
 sudo mysql saas_assinaturas < migrations/002_painel_gestao.sql
 sudo mysql saas_assinaturas < migrations/003_contratos_clientes.sql
 sudo mysql saas_assinaturas < migrations/004_chamado_resolvido.sql
+sudo mysql saas_assinaturas < migrations/005_concluir_chamados.sql
 ```
 
-Em uma instalação totalmente nova, execute `sudo mysql < schema.sql` e depois as migrações 002 e 003. Não execute a migração 001 após o schema completo. A migração 003 pode ser executada novamente sem duplicar os três clientes, pois os e-mails são únicos e o comando usa `INSERT IGNORE`.
+Em uma instalação totalmente nova, execute `sudo mysql < schema.sql` e depois as migrações 002 a 005. Não execute a migração 001 após o schema completo. A migração 003 pode ser executada novamente sem duplicar os três clientes, pois os e-mails são únicos e o comando usa `INSERT IGNORE`. A migração 004 evita duplicar o chamado de demonstração.
 
-A migração 003 concede ao usuário JDBC a permissão de atualizar assinaturas. Ela também adiciona três empresas fictícias à tabela de clientes, sem criar contratos para elas. A migração 004 garante a permissão de inserir clientes e inclui, uma única vez, um chamado resolvido de demonstração para a Aurora Tecnologia Ltda.
+A migração 003 concede ao usuário JDBC a permissão de atualizar assinaturas. Ela também adiciona três empresas fictícias à tabela de clientes, sem criar contratos para elas. A migração 004 garante a permissão de inserir clientes e inclui, uma única vez, um chamado resolvido de demonstração para a Aurora Tecnologia Ltda. A migração 005 concede ao usuário JDBC a permissão de atualizar o status dos chamados.
 
 ### 4. Configurar as credenciais do banco
 
@@ -239,16 +241,7 @@ sudo journalctl -u tomcat10 -n 80 --no-pager
 
 ## Validação na VM
 
-Em **25/11/2026**, a aplicação foi validada manualmente na VM antes desta nova atualização. Naquele momento, o painel apresentou:
-
-| Indicador | Resultado observado anteriormente |
-|---|---:|
-| Empresas cadastradas | 3 |
-| Assinaturas ativas | 4 |
-| Chamados pendentes | 2 |
-| Receita mensal estimada | R$ 849,60 |
-
-Esses números são um registro histórico da validação anterior. Após aplicar a migração 003, serão incluídos três clientes sem contratos; portanto, o total de empresas deverá aumentar em três. A nova regra de atualização de contratos ainda precisa ser validada na VM. Não apresente essa funcionalidade como testada até executar os cenários descritos em [docs/testes.md](docs/testes.md).
+Em **25/11/2026**, a aplicação foi validada manualmente na VM. As validações adicionais de cadastro de clientes, bloqueio de e-mail duplicado e migrações foram realizadas durante a atualização descrita nesta documentação. Os cenários de conclusão de chamados e atualização de contratos devem ser marcados como aprovados somente depois de executados na VM.
 
 ## Segurança e limitações didáticas
 
