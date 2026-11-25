@@ -12,15 +12,17 @@ A aplicação ajuda uma empresa fictícia provedora de software a acompanhar seu
 - Proteção das páginas internas e encerramento de sessão (logout).
 - Painel com total de clientes, assinaturas ativas, chamados pendentes e receita mensal estimada.
 - Pesquisa de empresas por nome ou e-mail.
+- Cadastro de novas empresas pela interface, com validação dos campos e bloqueio de e-mails duplicados.
 - Consulta de assinaturas, planos, valores, datas e status.
 - Cadastro de contratos: se a empresa já tiver uma assinatura ativa, o registro existente é atualizado em vez de criar outro.
 - Se houver contratos ativos duplicados de versões anteriores, o mais recente é mantido e os demais são marcados como cancelados, preservando o histórico.
 - Consulta e abertura de chamados vinculados às empresas.
+- Chamado resolvido de demonstração para apresentar os estados pendente e resolvido na listagem.
 - Consultas SQL com `PreparedStatement`, transações e proteção CSRF nos formulários que alteram dados.
 - Interface CSS responsiva e própria.
 - Três clientes fictícios adicionais para demonstração.
 
-**Limitações funcionais atuais:** não há tela/ação para marcar um chamado como resolvido; o módulo permite consultar e abrir chamados. Também não há cobrança real nem integração com meios de pagamento.
+**Limitações funcionais atuais:** a base inclui um chamado de demonstração já resolvido, mas ainda não há tela/ação para alterar o status de um chamado pendente para resolvido; o módulo permite consultar e abrir chamados. Também não há cobrança real nem integração com meios de pagamento.
 
 ## Tecnologias
 
@@ -54,7 +56,9 @@ app/
   index.jsp                  tela de login
   login.jsp                  autenticação e token de sessão
   home.jsp                   painel com indicadores
-  clientes.jsp               pesquisa de empresas
+  clientes.jsp               pesquisa e listagem de empresas
+  novo_cliente.jsp           formulário de cadastro de empresa
+  salvar_cliente.jsp         validação e gravação de novo cliente
   assinaturas.jsp            consulta de contratos
   nova_assinatura.jsp        formulário de novo contrato
   salvar_assinatura.jsp      criação ou atualização de contrato
@@ -72,6 +76,7 @@ migrations/
   001_login_token.sql         estrutura inicial de autenticação
   002_painel_gestao.sql        ajustes de autenticação e permissões
   003_contratos_clientes.sql   atualização de contratos e clientes de demonstração
+  004_chamado_resolvido.sql    permissão de cadastro e chamado resolvido de demonstração
 tomcat/
   mini.xml                    publicação da aplicação no contexto /mini
 docs/
@@ -127,11 +132,12 @@ Depois, execute as migrações na ordem:
 ```bash
 sudo mysql saas_assinaturas < migrations/002_painel_gestao.sql
 sudo mysql saas_assinaturas < migrations/003_contratos_clientes.sql
+sudo mysql saas_assinaturas < migrations/004_chamado_resolvido.sql
 ```
 
 Em uma instalação totalmente nova, execute `sudo mysql < schema.sql` e depois as migrações 002 e 003. Não execute a migração 001 após o schema completo. A migração 003 pode ser executada novamente sem duplicar os três clientes, pois os e-mails são únicos e o comando usa `INSERT IGNORE`.
 
-A migração 003 concede ao usuário JDBC a permissão de atualizar assinaturas. Ela também adiciona três empresas fictícias à tabela de clientes, sem criar contratos para elas.
+A migração 003 concede ao usuário JDBC a permissão de atualizar assinaturas. Ela também adiciona três empresas fictícias à tabela de clientes, sem criar contratos para elas. A migração 004 garante a permissão de inserir clientes e inclui, uma única vez, um chamado resolvido de demonstração para a Aurora Tecnologia Ltda.
 
 ### 4. Configurar as credenciais do banco
 

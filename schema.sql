@@ -80,6 +80,13 @@ INSERT INTO chamados (cliente_id, assunto, data_abertura, resolvido) VALUES
 (2, 'Erro ao exportar relatorio', '2026-10-05', TRUE),
 (3, 'Duvida sobre cobranca', '2026-10-08', FALSE);
 
+-- Chamado resolvido de demonstracao para a Aurora Tecnologia Ltda.
+INSERT INTO chamados (cliente_id, assunto, data_abertura, resolvido)
+SELECT id, 'Falha no acesso ao painel administrativo', '2026-11-20', TRUE
+FROM clientes
+WHERE email = 'contato@auroratecnologia.example'
+LIMIT 1;
+
 INSERT INTO usuarios (login, senha) VALUES ('admin', SHA2('123456', 256));
 
 -- Credencial didatica para testes; MD5 e usado para seguir o exemplo do professor.

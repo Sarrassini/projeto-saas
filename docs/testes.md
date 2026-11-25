@@ -25,9 +25,9 @@ Os resultados abaixo separam o que foi efetivamente observado na VM do que ainda
 | T08 | Conferir os indicadores do painel após os cadastros | O painel exibiu 3 empresas, 4 assinaturas ativas, 2 chamados pendentes e R$ 849,60 de receita mensal estimada. | **Aprovado na versão anterior** |
 | T09 | Encerrar a sessão pelo botão Sair | O logout foi concluído e a aplicação retornou à tela de login. | **Aprovado** |
 
-## Novos testes — atualização de contratos e clientes
+## Novos testes — atualização de contratos, clientes e chamados
 
-Executar estes cenários depois de atualizar os arquivos na VM e aplicar a migração 003.
+Executar estes cenários depois de atualizar os arquivos na VM e aplicar as migrações 003 e 004.
 
 | ID | Cenário | Resultado esperado | Status |
 |---|---|---|---|
@@ -36,6 +36,10 @@ Executar estes cenários depois de atualizar os arquivos na VM e aplicar a migra
 | T12 | Selecionar uma empresa sem contrato ativo e salvar um plano | Um novo contrato ativo é criado. | **Pendente** |
 | T13 | Conferir a lista de clientes após aplicar a migração 003 | As três novas empresas de demonstração aparecem na listagem. | **Pendente** |
 | T14 | Executar novamente a migração 003 | Os clientes não são duplicados, pois os e-mails são únicos e o script usa `INSERT IGNORE`. | **Pendente** |
+| T15 | Cadastrar uma nova empresa pela página Clientes | O cliente é gravado no MySQL e aparece na listagem. | **Pendente** |
+| T16 | Tentar cadastrar outro cliente com e-mail já utilizado | O sistema informa que o e-mail já está cadastrado e não cria duplicidade. | **Pendente** |
+| T17 | Consultar Chamados após aplicar a migração 004 | O chamado de demonstração da Aurora Tecnologia Ltda aparece com situação Resolvido. | **Pendente** |
+| T18 | Executar novamente a migração 004 | O chamado de demonstração não é inserido novamente. | **Pendente** |
 
 ### Como conferir que um contrato foi atualizado
 
@@ -76,7 +80,7 @@ ORDER BY empresa;
 
 ## Funcionalidade fora do escopo implementado
 
-A tela de chamados permite consultar e abrir solicitações. **Não existe atualmente uma ação/tela para alterar um chamado pendente para resolvido.** Por isso, não foi registrado um teste de resolução de chamado.
+A tela de chamados permite consultar e abrir solicitações e agora terá um chamado de demonstração já marcado como resolvido. **Ainda não existe uma ação/tela para alterar um chamado pendente para resolvido.** Por isso, o teste T17 verifica apenas a exibição do exemplo resolvido, não uma operação de resolução feita pela interface.
 
 ## Consultas SQL para conferência
 
@@ -95,6 +99,12 @@ SELECT c.empresa, ch.assunto, ch.data_abertura, ch.resolvido
 FROM chamados ch
 JOIN clientes c ON c.id = ch.cliente_id
 ORDER BY ch.id DESC;
+
+-- Conferir o chamado resolvido de demonstracao:
+SELECT c.empresa, ch.assunto, ch.data_abertura, ch.resolvido
+FROM chamados ch
+JOIN clientes c ON c.id = ch.cliente_id
+WHERE ch.assunto = 'Falha no acesso ao painel administrativo';
 
 SELECT `user`, token IS NOT NULL AS token_ativo
 FROM login;
