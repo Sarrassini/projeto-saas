@@ -1,0 +1,30 @@
+# Credenciais e arquivos de ambiente
+.env
+.env.*
+*.env
+!.env.example
+
+# Logs e arquivos temporarios
+*.log
+*.tmp
+*.temp
+
+# Backups locais
+backup_*.sql
+*.sql.bak
+*.dump
+
+# Arquivos compilados Java e saidas de build
+*.class
+*.jar
+target/
+build/
+
+# Configuracoes locais de editores/IDE
+.idea/
+.vscode/
+*.iml
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
