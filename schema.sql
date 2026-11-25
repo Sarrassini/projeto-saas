@@ -66,7 +66,10 @@ INSERT INTO planos (nome, preco_mensal, limite_usuarios) VALUES
 INSERT INTO clientes (empresa, email, data_cadastro) VALUES
 ('Padaria Pao Quente', 'contato@paoquente.com', '2026-09-15'),
 ('TechNova Ltda', 'ti@technova.com', '2026-09-20'),
-('Clinica Vida', 'admin@clinicavida.com', '2026-10-01');
+('Clinica Vida', 'admin@clinicavida.com', '2026-10-01'),
+('Aurora Tecnologia Ltda', 'contato@auroratecnologia.example', '2026-11-25'),
+('Horizonte Consultoria Empresarial', 'contato@horizonteconsultoria.example', '2026-11-25'),
+('Prisma Solucoes Digitais', 'suporte@prismasolucoes.example', '2026-11-25');
 
 INSERT INTO assinaturas (cliente_id, plano_id, data_inicio, status) VALUES
 (1, 1, '2026-09-15', 'ativa'),
