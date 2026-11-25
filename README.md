@@ -13,10 +13,12 @@ A aplicação ajuda uma empresa fictícia provedora de software a acompanhar seu
 - Painel com total de clientes, assinaturas ativas, chamados pendentes e receita mensal estimada.
 - Pesquisa de empresas por nome ou e-mail.
 - Consulta de assinaturas, planos, valores, datas e status.
-- Cadastro de novas assinaturas.
+- Cadastro de contratos: se a empresa já tiver uma assinatura ativa, o registro existente é atualizado em vez de criar outro.
+- Se houver contratos ativos duplicados de versões anteriores, o mais recente é mantido e os demais são marcados como cancelados, preservando o histórico.
 - Consulta e abertura de chamados vinculados às empresas.
-- Consultas SQL com `PreparedStatement` e proteção CSRF nos formulários que alteram dados.
+- Consultas SQL com `PreparedStatement`, transações e proteção CSRF nos formulários que alteram dados.
 - Interface CSS responsiva e própria.
+- Três clientes fictícios adicionais para demonstração.
 
 **Limitações funcionais atuais:** não há tela/ação para marcar um chamado como resolvido; o módulo permite consultar e abrir chamados. Também não há cobrança real nem integração com meios de pagamento.
 
@@ -53,9 +55,9 @@ app/
   login.jsp                  autenticação e token de sessão
   home.jsp                   painel com indicadores
   clientes.jsp               pesquisa de empresas
-  assinaturas.jsp            consulta de assinaturas
-  nova_assinatura.jsp        formulário de nova assinatura
-  salvar_assinatura.jsp      gravação de assinatura
+  assinaturas.jsp            consulta de contratos
+  nova_assinatura.jsp        formulário de novo contrato
+  salvar_assinatura.jsp      criação ou atualização de contrato
   chamados.jsp               consulta de chamados
   novo_chamado.jsp           formulário de novo chamado
   salvar_chamado.jsp         gravação de chamado
@@ -69,6 +71,7 @@ schema.sql                    banco para instalação nova
 migrations/
   001_login_token.sql         estrutura inicial de autenticação
   002_painel_gestao.sql        ajustes de autenticação e permissões
+  003_contratos_clientes.sql   atualização de contratos e clientes de demonstração
 tomcat/
   mini.xml                    publicação da aplicação no contexto /mini
 docs/
@@ -111,7 +114,7 @@ Não apague nem recrie o banco existente para atualizar a aplicação.
 
 ### 3. Aplicar as migrações
 
-O usuário `saas_user` deve existir antes da migração 002.
+O usuário `saas_user` deve existir antes das migrações 002 e 003.
 
 Se a VM ainda não possui a tabela `login` e a função `gera_token()`, execute:
 
@@ -119,13 +122,16 @@ Se a VM ainda não possui a tabela `login` e a função `gera_token()`, execute:
 sudo mysql saas_assinaturas < migrations/001_login_token.sql
 ```
 
-Depois, execute:
+Depois, execute as migrações na ordem:
 
 ```bash
 sudo mysql saas_assinaturas < migrations/002_painel_gestao.sql
+sudo mysql saas_assinaturas < migrations/003_contratos_clientes.sql
 ```
 
-Em uma instalação totalmente nova, use `sudo mysql < schema.sql` e depois a migração 002. Não execute a migração 001 depois do schema completo.
+Em uma instalação totalmente nova, execute `sudo mysql < schema.sql` e depois as migrações 002 e 003. Não execute a migração 001 após o schema completo. A migração 003 pode ser executada novamente sem duplicar os três clientes, pois os e-mails são únicos e o comando usa `INSERT IGNORE`.
+
+A migração 003 concede ao usuário JDBC a permissão de atualizar assinaturas. Ela também adiciona três empresas fictícias à tabela de clientes, sem criar contratos para elas.
 
 ### 4. Configurar as credenciais do banco
 
@@ -227,18 +233,16 @@ sudo journalctl -u tomcat10 -n 80 --no-pager
 
 ## Validação na VM
 
-Em **25/11/2026**, a aplicação foi validada manualmente na VM. Os testes confirmados incluíram login administrativo, pesquisa de clientes por e-mail, consulta e cadastro de assinaturas, consulta e abertura de chamados, atualização dos indicadores do painel e logout.
+Em **25/11/2026**, a aplicação foi validada manualmente na VM antes desta nova atualização. Naquele momento, o painel apresentou:
 
-Após os cadastros de teste, o painel apresentou:
-
-| Indicador | Resultado observado |
+| Indicador | Resultado observado anteriormente |
 |---|---:|
 | Empresas cadastradas | 3 |
 | Assinaturas ativas | 4 |
 | Chamados pendentes | 2 |
 | Receita mensal estimada | R$ 849,60 |
 
-Os testes negativos de autenticação, CSRF e acesso direto às páginas internas ainda precisam ser executados separadamente. A lista completa está em [docs/testes.md](docs/testes.md).
+Esses números são um registro histórico da validação anterior. Após aplicar a migração 003, serão incluídos três clientes sem contratos; portanto, o total de empresas deverá aumentar em três. A nova regra de atualização de contratos ainda precisa ser validada na VM. Não apresente essa funcionalidade como testada até executar os cenários descritos em [docs/testes.md](docs/testes.md).
 
 ## Segurança e limitações didáticas
 
