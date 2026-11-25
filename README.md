@@ -1,140 +1,187 @@
 # Gestão SaaS — Plataforma de Assinaturas
 
-Projeto acadêmico original da disciplina **SaaS Infrastructure**, desenvolvido para simular a gestão de serviços por assinatura, com foco em infraestrutura Linux, banco relacional, consultas e operações web.
+Projeto acadêmico da disciplina **SaaS Infrastructure**, desenvolvido para simular a gestão de serviços por assinatura, com foco em infraestrutura Linux, banco de dados relacional e operações web.
 
 ## Proposta
-A aplicação ajuda uma empresa fictícia provedora de software a acompanhar seus **clientes**, **planos contratados**, **assinaturas** e **chamados de suporte**. Diferente de um sistema de academia, ela trabalha com o processo de negócio de gestão de contratos e atendimento.
 
-## Recursos implementados
-- Login com sessão e token persistido no MySQL, renovado a cada autenticação.
-- Proteção das páginas internas e encerramento de sessão.
+A aplicação ajuda uma empresa fictícia provedora de software a acompanhar seus **clientes**, **planos contratados**, **assinaturas** e **chamados de suporte**. O domínio do projeto é a gestão de contratos e atendimento de empresas.
+
+## Funcionalidades implementadas
+
+- Login administrativo com sessão e token persistido no MySQL.
+- Proteção das páginas internas e encerramento de sessão (logout).
 - Painel com total de clientes, assinaturas ativas, chamados pendentes e receita mensal estimada.
 - Pesquisa de empresas por nome ou e-mail.
-- Consulta das assinaturas, seus planos, valores, datas e status.
-- Cadastro de novas assinaturas com verificação de dados.
+- Consulta de assinaturas, planos, valores, datas e status.
+- Cadastro de novas assinaturas.
 - Consulta e abertura de chamados vinculados às empresas.
-- Consultas com `PreparedStatement` e proteção CSRF nos formulários que alteram dados.
-- Interface CSS original, responsiva e distinta da aplicação usada como referência.
+- Consultas SQL com `PreparedStatement` e proteção CSRF nos formulários que alteram dados.
+- Interface CSS responsiva e própria.
 
-**Observação:** o token autentica o acesso ao painel; **não** foi implementada uma cobrança real nem uma integração com meios de pagamento.
+**Limitações funcionais atuais:** não há tela/ação para marcar um chamado como resolvido; o módulo permite consultar e abrir chamados. Também não há cobrança real nem integração com meios de pagamento.
 
 ## Tecnologias
-- Ubuntu Server 24.04 / VMware
-- Java e Apache Tomcat 10
-- JSP, HTML e CSS
-- MySQL Server 8.x e MySQL Connector/J (JDBC)
-- SQL com chaves estrangeiras, `JOIN`, `COUNT` e `SUM`
+
+- Ubuntu Server em máquina virtual.
+- Java / OpenJDK (ambiente validado: 26.0.2).
+- Apache Tomcat 10 (ambiente validado: 10.1.55).
+- JSP, HTML e CSS.
+- MySQL Server e MySQL Connector/J (na VM validada: Connector/J 26.7.0).
 
 ## Arquitetura
+
 ```text
-Navegador Windows
-       |
-       | HTTP :8080/mini
-       v
-VM Ubuntu Server (Tomcat 10 / arquivos JSP)
-       |
-       | JDBC em localhost:3306
-       v
-MySQL (mesma VM Ubuntu)
+Navegador no computador host
+          |
+          | HTTP :8080/mini
+          v
+Máquina virtual Ubuntu
+  Apache Tomcat 10 / JSP
+          |
+          | JDBC em localhost:3306
+          v
+       MySQL Server
 ```
 
-O projeto atual mantém MySQL na VM, **não** exige instalar SQL Server no Windows.
+A aplicação foi implantada e testada em uma VM acessada pela rede local. **Isso não equivale a uma hospedagem pública em nuvem**: para disponibilizá-la na internet seriam necessários, entre outros itens, um servidor público, regras de rede/firewall, domínio e HTTPS.
 
-## Estrutura
+## Estrutura do projeto
+
 ```text
 app/
-  index.jsp                  login
-  login.jsp                  autenticacao e token de sessao
-  home.jsp                   dashboard com indicadores
-  clientes.jsp               busca de empresas
-  assinaturas.jsp            consulta de contratos
-  nova_assinatura.jsp        formulario de novo contrato
-  salvar_assinatura.jsp      grava novo contrato
-  chamados.jsp               consulta de suporte
-  novo_chamado.jsp           formulario de novo chamado
-  salvar_chamado.jsp         grava chamado
-  logout.jsp                 revoga token e encerra sessao
-  estilo.css                 interface propria
+  index.jsp                  tela de login
+  login.jsp                  autenticação e token de sessão
+  home.jsp                   painel com indicadores
+  clientes.jsp               pesquisa de empresas
+  assinaturas.jsp            consulta de assinaturas
+  nova_assinatura.jsp        formulário de nova assinatura
+  salvar_assinatura.jsp      gravação de assinatura
+  chamados.jsp               consulta de chamados
+  novo_chamado.jsp           formulário de novo chamado
+  salvar_chamado.jsp         gravação de chamado
+  logout.jsp                 revogação do token e encerramento da sessão
+  estilo.css                 estilos da interface
   WEB-INF/
-    conexao.jspf             conexao JDBC e formatadores
-    protecao.jspf            protecao de pagina e CSRF
-    web.xml                  configuracao da aplicacao
-schema.sql                   banco para uma instalacao nova
+    conexao.jspf              conexão JDBC e utilitários
+    protecao.jspf             proteção de páginas e token CSRF
+    web.xml                   configuração da aplicação
+schema.sql                    banco para instalação nova
 migrations/
-  001_login_token.sql        tabela de login e funcao iniciais
-  002_painel_gestao.sql      permite logout e gravacao pelo sistema
+  001_login_token.sql         estrutura inicial de autenticação
+  002_painel_gestao.sql        ajustes de autenticação e permissões
 tomcat/
-  mini.xml                   publicacao da aplicacao em /mini
+  mini.xml                    publicação da aplicação no contexto /mini
 docs/
-  testes.md                  cenarios de validacao
+  testes.md                   cenários e resultados de validação
+.gitignore                    arquivos locais que não devem ir ao Git
 ```
 
-## Instalação na VM já usada no projeto
+## Instalação e atualização na VM
 
-### 1. Obter esta branch
-Use a branch `feature/painel-gestao-assinaturas`. Ela contém a nova aplicação e **não altera a main**.
+Os comandos abaixo descrevem a implantação usada neste projeto. Ajuste caminhos e versões caso seu ambiente seja diferente.
 
-Se o repositório já existe na VM (ajuste o caminho da pasta caso seja diferente):
+### 1. Atualizar o repositório
+
+A branch principal do projeto é `main`.
+
+Se o repositório já existe na VM:
+
 ```bash
 cd ~/projeto-saas-git
-git status
-git fetch origin
-git switch --track origin/feature/painel-gestao-assinaturas
+git switch main
+git pull origin main
 ```
-Se já estiver na branch, execute `git pull origin feature/painel-gestao-assinaturas`. Se existirem mudanças locais, preserve-as antes de mudar de branch.
+
+Se ainda não existe:
+
+```bash
+git clone https://github.com/Sarrassini/projeto-saas.git
+cd projeto-saas
+```
 
 ### 2. Fazer backup do banco
+
+Antes de aplicar alterações de estrutura:
+
 ```bash
 sudo mysqldump --routines saas_assinaturas > ~/backup_saas_antes_painel.sql
 ```
-Não apague nem recrie o banco.
 
-### 3. Aplicar migrações
-Se sua VM **ainda não possui a tabela `login`** e a função `gera_token()`, execute:
+Não apague nem recrie o banco existente para atualizar a aplicação.
+
+### 3. Aplicar as migrações
+
+O usuário `saas_user` deve existir antes da migração 002.
+
+Se a VM ainda não possui a tabela `login` e a função `gera_token()`, execute:
+
 ```bash
 sudo mysql saas_assinaturas < migrations/001_login_token.sql
 ```
-Depois, em todos os casos, execute:
+
+Depois, execute:
+
 ```bash
 sudo mysql saas_assinaturas < migrations/002_painel_gestao.sql
 ```
-O script 002 permite invalidar o token após logout, atualiza a função de token e concede ao usuário JDBC somente os privilégios necessários. O usuário `saas_user` deve existir antes de executar esse script. Os privilégios pressupõem uma conexão MySQL local na VM.
 
-Em instalação totalmente nova, execute `sudo mysql < schema.sql` e depois o script `002_painel_gestao.sql`; não é necessário executar o 001 após o schema completo.
+Em uma instalação totalmente nova, use `sudo mysql < schema.sql` e depois a migração 002. Não execute a migração 001 depois do schema completo.
 
-### 4. Configurar as credenciais do banco no Tomcat
-Evite salvar a senha real no GitHub. A aplicação lê estas variáveis:
-- `SAAS_DB_URL` (padrão `jdbc:mysql://localhost:3306/saas_assinaturas`)
-- `SAAS_DB_USER` (padrão `saas_user`)
-- `SAAS_DB_PASSWORD` (**obrigatória**)
+### 4. Configurar as credenciais do banco
 
-Crie um arquivo de ambiente protegido:
+A senha real do banco não deve ser salva no GitHub. A aplicação lê as variáveis:
+
+- `SAAS_DB_URL` (padrão: `jdbc:mysql://localhost:3306/saas_assinaturas`)
+- `SAAS_DB_USER` (padrão: `saas_user`)
+- `SAAS_DB_PASSWORD` (obrigatória)
+
+Crie o arquivo de ambiente protegido:
+
 ```bash
 sudo mkdir -p /etc/saas
 sudo nano /etc/saas/saas.env
 ```
-Conteúdo ilustrativo (substitua a senha):
+
+Conteúdo ilustrativo; substitua o valor de exemplo pela senha configurada no MySQL:
+
 ```ini
 SAAS_DB_URL=jdbc:mysql://localhost:3306/saas_assinaturas
 SAAS_DB_USER=saas_user
-SAAS_DB_PASSWORD=SENHA_REAL_DO_USUARIO_MYSQL
+SAAS_DB_PASSWORD=SUBSTITUA_PELA_SENHA_DO_MYSQL
 ```
-Proteja-o e configure o serviço:
+
+Proteja o arquivo:
+
 ```bash
 sudo chown root:root /etc/saas/saas.env
 sudo chmod 600 /etc/saas/saas.env
+```
+
+Configure o serviço Tomcat para ler o arquivo:
+
+```bash
 sudo mkdir -p /etc/systemd/system/tomcat10.service.d
 sudo nano /etc/systemd/system/tomcat10.service.d/saas.conf
 ```
+
 Conteúdo:
+
 ```ini
 [Service]
 EnvironmentFile=/etc/saas/saas.env
 ```
-Depois execute `sudo systemctl daemon-reload`.
 
-### 5. Publicar no Tomcat
-Se necessário, instale `default-jdk`, `tomcat10` e o arquivo `mysql-connector-j-8.4.0.jar` em `/usr/share/tomcat10/lib/`, conforme o histórico do projeto.
+Aplique a configuração:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+### 5. Driver JDBC e publicação no Tomcat
+
+Instale uma versão compatível do MySQL Connector/J e disponibilize o arquivo JAR no diretório de bibliotecas do Tomcat. Na VM validada, o pacote instalado foi o Connector/J 26.7.0.
+
+Publique os arquivos da aplicação:
 
 ```bash
 sudo mkdir -p /opt/tomcat10/mini_saas
@@ -149,36 +196,59 @@ sudo systemctl restart tomcat10
 sudo systemctl status tomcat10 --no-pager
 ```
 
-Abra no Windows:
+Acesse pelo navegador do computador host:
+
 ```text
 http://IP_DA_VM:8080/mini/
 ```
 
-Login didático: `admin` / `123456`.
+Substitua `IP_DA_VM` pelo endereço atual da interface de rede da VM.
 
-### 6. Verificação
-Os testes de sucesso, insucesso, acesso direto não autorizado e gravação estão descritos em [docs/testes.md](docs/testes.md).
+**Credencial didática inicial:** usuário `admin`, senha `123456`.
 
-Em caso de erro HTTP 500:
+### 6. Verificação e logs
+
+Os testes e os resultados observados estão em [docs/testes.md](docs/testes.md).
+
+Para consultar os logs do Tomcat:
+
 ```bash
 sudo journalctl -u tomcat10 -n 80 --no-pager
 ```
 
 ## Modelagem do banco
-- `clientes`: empresa, e-mail, data de cadastro.
+
+- `clientes`: empresa, e-mail e data de cadastro.
 - `planos`: nome, mensalidade e limite de usuários.
 - `assinaturas`: empresa, plano, data de início e status.
-- `chamados`: empresa, assunto, data de abertura e resolução.
-- `login`: usuário, hash de senha e token ativo.
-- `usuarios`: tabela anterior, preservada para compatibilidade.
+- `chamados`: empresa, assunto, data de abertura e situação de resolução.
+- `login`: usuário, hash de senha e token de autenticação.
+- `usuarios`: tabela anterior, mantida para compatibilidade com a primeira versão.
 
-## Limitações didáticas e segurança
-- A senha `admin/123456` e o hash MD5 são mantidos apenas para compatibilidade com o exemplo acadêmico. Em um sistema real, use Argon2id, bcrypt ou scrypt e HTTPS.
-- A receita estimada soma as mensalidades das assinaturas ativas; não representa faturamento efetivamente cobrado.
-- A implementação foi preparada no repositório, **mas ainda não foi executada na VM nem testada em MySQL/Tomcat reais**.
-- Não coloque arquivos de configuração com senhas reais no repositório.
+## Validação na VM
 
-## Autores do projeto
+Em **25/11/2026**, a aplicação foi validada manualmente na VM. Os testes confirmados incluíram login administrativo, pesquisa de clientes por e-mail, consulta e cadastro de assinaturas, consulta e abertura de chamados, atualização dos indicadores do painel e logout.
+
+Após os cadastros de teste, o painel apresentou:
+
+| Indicador | Resultado observado |
+|---|---:|
+| Empresas cadastradas | 3 |
+| Assinaturas ativas | 4 |
+| Chamados pendentes | 2 |
+| Receita mensal estimada | R$ 849,60 |
+
+Os testes negativos de autenticação, CSRF e acesso direto às páginas internas ainda precisam ser executados separadamente. A lista completa está em [docs/testes.md](docs/testes.md).
+
+## Segurança e limitações didáticas
+
+- A credencial `admin/123456` e o hash MD5 são mantidos apenas para compatibilidade com o exercício acadêmico. Não são adequados para produção; um sistema real deve usar Argon2id, bcrypt ou scrypt, além de HTTPS.
+- A receita exibida é uma estimativa calculada pela soma das mensalidades das assinaturas ativas; não representa pagamentos efetivamente recebidos.
+- A VM está acessível pela rede local. O projeto não está publicado em uma nuvem pública.
+- Não coloque senhas, tokens, backups do banco ou arquivos de ambiente no repositório.
+
+## Integrantes
+
 - Davi Sarrassini
 - Kauan Pereira Taborda
 - Enzo Panassol Zapparolli
@@ -186,4 +256,5 @@ sudo journalctl -u tomcat10 -n 80 --no-pager
 - João Vitor Fogaça Rocha
 
 ## Referência de aprendizagem
-A organização didática segue o tema e os requisitos da disciplina. O projeto de uma academia enviado como referência foi analisado para entender a separação de telas, autenticação e operações com banco; a solução de gestão de assinaturas e seu código foram implementados especificamente para este repositório.
+
+A organização didática considera os requisitos da disciplina. O projeto de academia fornecido como referência foi utilizado para compreender a separação de telas, autenticação e operações com banco; o domínio de gestão de assinaturas e a implementação deste repositório foram desenvolvidos para este projeto.
