@@ -11,7 +11,18 @@
 try(Connection c=abrirBanco();PreparedStatement ps=c.prepareStatement(
     "SELECT c.empresa,p.nome,p.preco_mensal,a.data_inicio,a.status " +
     "FROM assinaturas a JOIN clientes c ON c.id=a.cliente_id " +
-    "JOIN planos p ON p.id=a.plano_id ORDER BY a.data_inicio DESC,a.id DESC")) {
+    "JOIN planos p ON p.id=a.plano_id " +
+    "ORDER BY CASE p.nome " +
+    "WHEN 'Basico' THEN 1 " +
+    "WHEN 'Profissional' THEN 2 " +
+    "WHEN 'Enterprise' THEN 3 " +
+    "ELSE 4 END, " +
+    "CASE a.status " +
+    "WHEN 'ativa' THEN 1 " +
+    "WHEN 'suspensa' THEN 2 " +
+    "WHEN 'cancelada' THEN 3 " +
+    "ELSE 4 END, " +
+    "a.data_inicio DESC,a.id DESC")) {
     try(ResultSet rs=ps.executeQuery()){
         while(rs.next()){
             String status=rs.getString("status");
